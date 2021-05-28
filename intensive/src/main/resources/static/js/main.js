@@ -1,5 +1,7 @@
 $(function(){
 
+    var username = 'currentUser';
+
     let init = function() {
         loadUsers();
         //TODO load users, load messages
@@ -8,6 +10,7 @@ $(function(){
 
     let authorise = function() {
         let name = prompt('Input username:');
+        username = name;
         $.post('/api/users', {'name' : name}, function(response){
             if (response.result) {
                 init();
@@ -20,6 +23,7 @@ $(function(){
     let checkAuthStatus = function() {
         $.get('/api/auth', function(response){
             if (response.result) {
+                username = response.name;
                 init();
             } else {
                 authorise();
@@ -40,5 +44,26 @@ $(function(){
             }
         });
     };
+
+    $('.send-message').on('click', function(){
+        let message = $('.message-text').val();
+        let messagesList = $('.messages-list');
+        $.post('/api/messages', {'text': message}, function(response){
+            if(response.result) {
+                let messageItem =
+                    $('<div class="message"><b>'
+                        + response.time
+                        + "&nbsp;"
+                        + username
+                        + '</b> '
+                        + message
+                        + '</div>');
+                messagesList.append(messageItem);
+                $('.message-text').val('');
+            } else {
+                alert('Something gone wrong...');
+            }
+        });
+    });
 });
 

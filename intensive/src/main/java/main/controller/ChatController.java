@@ -1,6 +1,8 @@
 package main.controller;
 
+import main.model.Message;
 import main.model.User;
+import main.repository.MessageRepository;
 import main.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +27,12 @@ public class ChatController {
      */
     @Autowired
     private UserRepository userRepository;
+
+    /**
+     * Репозиторий для доступа к таблице с данными о сообщениях.
+     */
+    @Autowired
+    private MessageRepository messageRepository;
 
     /**
      * Получение статуса авторизации.
@@ -75,6 +83,29 @@ public class ChatController {
         userRepository.findAll().forEach(usersList::add);
 
         response.put("users", usersList);
+        return response;
+    }
+
+    /**
+     * Отправка сообщения.
+     *
+     * @param request информация о запросе
+     * @return ответ на запросЫ
+     */
+    @PostMapping(path = "/api/messages")
+    public HashMap<String, Boolean> sendMessage(HttpServletRequest request) {
+        HashMap<String, Boolean> response = new HashMap<>();
+        String sessionId = getSessionId();
+
+        String text = request.getParameter("text");
+
+        Message message = new Message();
+        message.setText(text);
+        message.setDeliveringTime(new Date());
+        message.setUserId(userRepository.getBySessionId(sessionId).getId());
+        messageRepository.save(message);
+
+        response.put("result", true);
         return response;
     }
 
