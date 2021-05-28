@@ -4,8 +4,7 @@ $(function(){
 
     let init = function() {
         loadUsers();
-        //TODO load users, load messages
-        alert('OK');
+        loadMessages();
     };
 
     let authorise = function() {
@@ -45,6 +44,20 @@ $(function(){
         });
     };
 
+    let loadMessages = function() {
+        let messagesList = $('.messages-list');
+                $.get('/api/messages', function(response) {
+                    let messages = response.messages;
+                    for(let i in messages) {
+                        let messageItem = $('<div class="message"><b>' +
+                            messages[i].time + "&nbsp;" + "[" +
+                            messages[i].name + "]" +
+                            '</b> ' + messages[i].text + '</div>');
+                        messagesList.append(messageItem);
+                    }
+                });
+    };
+
     $('.send-message').on('click', function(){
         let message = $('.message-text').val();
         let messagesList = $('.messages-list');
@@ -53,8 +66,8 @@ $(function(){
                 let messageItem =
                     $('<div class="message"><b>'
                         + response.time
-                        + "&nbsp;"
-                        + username
+                        + "&nbsp;" + "["
+                        + username + "]"
                         + '</b> '
                         + message
                         + '</div>');

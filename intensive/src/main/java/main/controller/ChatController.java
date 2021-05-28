@@ -4,6 +4,9 @@ import main.model.Message;
 import main.model.User;
 import main.repository.MessageRepository;
 import main.repository.UserRepository;
+import main.response.AuthResponse;
+import main.response.MessageResponse;
+import main.response.AddMessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,17 +38,22 @@ public class ChatController {
     @Autowired
     private MessageRepository messageRepository;
 
+    private static final SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy");
+
     /**
      * Получение статуса авторизации.
      *
      * @return успешно или нет
      */
     @GetMapping(path = "/api/auth")
-    public HashMap<String, Boolean> authorise() {
-        HashMap<String, Boolean> response = new HashMap<>();
+    public AuthResponse authorise() {
+        AuthResponse response = new AuthResponse();
         String sessionId = getSessionId();
         User user = userRepository.getBySessionId(sessionId);
-        response.put("result", user != null);
+        response.setResult(user!=null);
+        if(user!=null){
+            response.setName(user.getName());
+        }
         return response;
     }
 
@@ -87,25 +96,49 @@ public class ChatController {
     }
 
     /**
+     * Получение списка сообщений.
+     *
+     * @return список сообщений
+     */
+    @GetMapping(path = "/api/messages")
+    public HashMap<String, List> getMessages() {
+        HashMap<String, List> response = new HashMap<>();
+        List<MessageResponse> messages = new ArrayList<>();
+        messageRepository.findAll().forEach(message -> {
+            MessageResponse messageResponse = new MessageResponse();
+            messageResponse.setTime(formatter.format(message.getDeliveringTime()));
+            messageResponse.setName(userRepository.getBySessionId(getSessionId()).getName());
+            messageResponse.setText(message.getText());
+            messages.add(messageResponse);
+        });
+
+        response.put("messages", messages);
+        return response;
+    }
+
+
+    /**
      * Отправка сообщения.
      *
      * @param request информация о запросе
      * @return ответ на запросЫ
      */
     @PostMapping(path = "/api/messages")
-    public HashMap<String, Boolean> sendMessage(HttpServletRequest request) {
-        HashMap<String, Boolean> response = new HashMap<>();
+    public AddMessageResponse sendMessage(HttpServletRequest request) {
+        AddMessageResponse response = new AddMessageResponse();
         String sessionId = getSessionId();
 
         String text = request.getParameter("text");
+        Date time = new Date();
 
         Message message = new Message();
         message.setText(text);
-        message.setDeliveringTime(new Date());
+        message.setDeliveringTime(time);
         message.setUserId(userRepository.getBySessionId(sessionId).getId());
         messageRepository.save(message);
 
-        response.put("result", true);
+        response.setResult(true);
+        response.setTime(formatter.format(time));
         return response;
     }
 
