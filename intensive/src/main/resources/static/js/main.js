@@ -1,6 +1,7 @@
 $(function(){
 
     let init = function() {
+        loadUsers();
         //TODO load users, load messages
         alert('OK');
     };
@@ -27,5 +28,17 @@ $(function(){
     };
 
     checkAuthStatus();
+
+    let loadUsers = function() {
+        $.get('/api/users', function(response){
+            let users = response.users;
+            let usersList = $('.users-list');
+            for(let i in users){
+                let userItem = $('<div class="user-item"></div>');
+                userItem.text(users[i].name);
+                usersList.append(userItem);
+            }
+        });
+    };
 });
 
