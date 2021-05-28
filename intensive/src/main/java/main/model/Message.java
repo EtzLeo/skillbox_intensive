@@ -4,19 +4,34 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import java.sql.Date;
+import java.util.Date;
 
+/**
+ * Сообщение.
+ */
 @Entity
 public class Message {
 
+    /**
+     * Идентификатор.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
+    /**
+     * Время отправки.
+     */
     private Date deliveringTime;
 
+    /**
+     * Идентификатор пользователя.
+     */
     private int userId;
 
+    /**
+     * Содержимое.
+     */
     private String text;
 
     public Message() {
